@@ -24,16 +24,22 @@ start_link() ->
 	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 -spec init([]) -> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
+
+%% 该监督者首次启动时会启动ranch_server
 init([]) ->
+	%% 默认子进程最大重启次数
 	Intensity = case application:get_env(ranch_sup_intensity) of
 		{ok, Value1} -> Value1;
 		undefined -> 1
 	end,
+	%% 默认重启周期
 	Period = case application:get_env(ranch_sup_period) of
 		{ok, Value2} -> Value2;
 		undefined -> 5
 	end,
 	Procs = [
+		%% #{id => atom, start => {M,F,A}}
 		#{id => ranch_server, start => {ranch_server, start_link, []}}
 	],
+	%% {ok, one_for_one(默认) 监督者启动标识, 子规范列表}
 	{ok, {#{intensity => Intensity, period => Period}, Procs}}.
