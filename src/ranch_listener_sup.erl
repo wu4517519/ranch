@@ -21,7 +21,9 @@
 -spec start_link(ranch:ref(), module(), any(), module(), any())
 	-> {ok, pid()}.
 start_link(Ref, Transport, TransOpts, Protocol, ProtoOpts) ->
+	%% 默认最大连接数max_connections 为 1024
 	MaxConns = maps:get(max_connections, TransOpts, 1024),
+	%% 默认使用logger
 	Logger = maps:get(logger, TransOpts, logger),
 	ranch_server:set_new_listener_opts(Ref, MaxConns, TransOpts, ProtoOpts,
 		[Ref, Transport, TransOpts, Protocol, ProtoOpts]),
@@ -33,6 +35,8 @@ start_link(Ref, Transport, TransOpts, Protocol, ProtoOpts) ->
 	-> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init({Ref, Transport, Protocol, Logger}) ->
 	ok = ranch_server:set_listener_sup(Ref, self()),
+	%% 启动ranch_conns_sup_sup
+	%% 启动ranch_acceptors_sup 监督者
 	ChildSpecs = [
 		#{
 			id => ranch_conns_sup_sup,

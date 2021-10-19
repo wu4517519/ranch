@@ -29,6 +29,7 @@ init([Ref, Transport, Logger]) ->
 	TransOpts = ranch_server:get_transport_options(Ref),
 	NumAcceptors = maps:get(num_acceptors, TransOpts, 10),
 	NumListenSockets = maps:get(num_listen_sockets, TransOpts, 1),
+	%% ranch_acceptors_sup启动时开始监听socket
 	LSockets = case get(lsockets) of
 		undefined ->
 			LSockets1 = start_listen_sockets(Ref, NumListenSockets, Transport, TransOpts, Logger),
@@ -70,6 +71,7 @@ start_listen_sockets(Ref, NumListenSockets, Transport, TransOpts0, Logger) when 
 
 -spec start_listen_socket(any(), module(), map(), module()) -> inet:socket().
 start_listen_socket(Ref, Transport, TransOpts, Logger) ->
+	%% 动态调用
 	case Transport:listen(TransOpts) of
 		{ok, Socket} ->
 			PostListenCb = maps:get(post_listen_callback, TransOpts, fun (_) -> ok end),

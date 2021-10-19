@@ -37,9 +37,11 @@ init([]) ->
 		{ok, Value2} -> Value2;
 		undefined -> 5
 	end,
+
+	%% 启动ranch_server
 	Procs = [
 		%% #{id => atom, start => {M,F,A}}
 		#{id => ranch_server, start => {ranch_server, start_link, []}}
 	],
-	%% {ok, one_for_one(默认) 监督者启动标识, 子规范列表}
+	%% {ok, one_for_one(默认) 监督者启动标识, 子规范列表(从左到右启动子进程)}
 	{ok, {#{intensity => Intensity, period => Period}, Procs}}.

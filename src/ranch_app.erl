@@ -20,8 +20,10 @@
 -export([profile_output/0]).
 
 -spec start(application:start_type(), term()) -> {ok, pid()} | {error, term()}.
+%% ranch应用程序主入口
 start(_, _) ->
 	_ = consider_profiling(),
+	%% 创建所需ETS表
 	ranch_server = ets:new(ranch_server, [
 		ordered_set, public, named_table]),
 	ranch_sup:start_link().

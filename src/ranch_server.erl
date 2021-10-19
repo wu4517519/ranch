@@ -184,6 +184,7 @@ count_connections(Ref) ->
 
 -spec init([]) -> {ok, #state{}}.
 init([]) ->
+	%% 启动进程时，从ranch_server注册表中获取进程信息并监听
 	ConnMonitors = [{{erlang:monitor(process, Pid), Pid}, {conns_sup, Ref, Id}} ||
 		[Ref, Id, Pid] <- ets:match(?TAB, {{conns_sup, '$1', '$2'}, '$3'})],
 	ListenerMonitors = [{{erlang:monitor(process, Pid), Pid}, {listener_sup, Ref}} ||
@@ -264,16 +265,22 @@ set_monitored_process(Key, Pid, State=#state{monitors=Monitors0}) ->
 	%% First we cleanup the monitor if a residual one exists.
 	%% This can happen during crashes when the restart is faster
 	%% than the cleanup.
+	%% 如果残留数据存在的话，首先进行清理关联监控器
+	%% 当重启早于清理时，可能会产生崩溃
 	Monitors = case lists:keytake(Key, 2, Monitors0) of
 		false ->
 			Monitors0;
 		{value, {{OldMonitorRef, _}, _}, Monitors1} ->
+			%% 接触旧的监控，同时删除监控调用者消息队列中的一个 {'DOWN', MonitorRef, process, Pid, Reason} 消息
+			%% 防止处理脏数据
 			true = erlang:demonitor(OldMonitorRef, [flush]),
 			Monitors1
 	end,
 	%% Then we unconditionally insert in the ets table.
 	%% If residual data is there, it will be overwritten.
+	%% 无条件插入数据，哪怕残留数据仍然存在，也会进行覆盖
 	true = ets:insert(?TAB, {Key, Pid}),
 	%% Finally we start monitoring this new process.
+	%% 最后开始监控这个新进程
 	MonitorRef = erlang:monitor(process, Pid),
 	State#state{monitors=[{{MonitorRef, Pid}, Key}|Monitors]}.
