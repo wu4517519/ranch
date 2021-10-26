@@ -34,6 +34,7 @@ start_link(Ref, Transport, TransOpts, Protocol, ProtoOpts) ->
 -spec init({ranch:ref(), module(), module(), module()})
 	-> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init({Ref, Transport, Protocol, Logger}) ->
+	%% 启动前先将监听参数存储到公共进程ranch_server并进行监听当前supervisor
 	ok = ranch_server:set_listener_sup(Ref, self()),
 	%% 启动ranch_conns_sup_sup
 	%% 启动ranch_acceptors_sup 监督者

@@ -27,7 +27,9 @@ start_link(Ref, Transport, Logger) ->
 -spec init([term()]) -> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init([Ref, Transport, Logger]) ->
 	TransOpts = ranch_server:get_transport_options(Ref),
+	%% 默认10个接收者进程
 	NumAcceptors = maps:get(num_acceptors, TransOpts, 10),
+	%% 默认监听Socket数
 	NumListenSockets = maps:get(num_listen_sockets, TransOpts, 1),
 	%% ranch_acceptors_sup启动时开始监听socket
 	LSockets = case get(lsockets) of
@@ -35,7 +37,7 @@ init([Ref, Transport, Logger]) ->
 			LSockets1 = start_listen_sockets(Ref, NumListenSockets, Transport, TransOpts, Logger),
 			put(lsockets, LSockets1),
 			LSockets1;
-		LSockets1 ->
+		LSockets1 -> %% 重启的情况
 			LSockets1
 	end,
 	Procs = [begin
