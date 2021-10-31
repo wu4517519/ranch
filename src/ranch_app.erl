@@ -26,6 +26,7 @@ start(_, _) ->
 	%% 创建所需ETS表
 	ranch_server = ets:new(ranch_server, [
 		ordered_set, public, named_table]),
+	%% 在这里启动ranch_sup
 	ranch_sup:start_link().
 
 -spec stop(term()) -> ok.
@@ -34,6 +35,7 @@ stop(_) ->
 
 -spec profile_output() -> ok.
 profile_output() ->
+	%% 将进程活动信息输出分析并输出到日志文件中
 	eprof:stop_profiling(),
 	eprof:log("procs.profile"),
 	eprof:analyze(procs),
