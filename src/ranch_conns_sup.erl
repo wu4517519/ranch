@@ -261,6 +261,7 @@ handshake(State=#state{ref=Ref, transport=Transport, handshake_timeout=Handshake
 		max_conns=MaxConns, alarms=Alarms0}, CurConns, NbChildren, Sleepers, To, Socket, SupPid, ProtocolPid) ->
 	case Transport:controlling_process(Socket, ProtocolPid) of
 		ok ->
+			%% 此处向回调模块发送handshake的目的是什么？？
 			ProtocolPid ! {handshake, Ref, Transport, Socket, HandshakeTimeout},
 			put(SupPid, active),
 			CurConns2 = CurConns + 1,
