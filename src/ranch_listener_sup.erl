@@ -25,6 +25,7 @@ start_link(Ref, Transport, TransOpts, Protocol, ProtoOpts) ->
 	MaxConns = maps:get(max_connections, TransOpts, 1024),
 	%% 默认使用logger
 	Logger = maps:get(logger, TransOpts, logger),
+	%% 将TransOpts ProtoOpts 存入ETS目的是在在暂停监听器后重启时能够获取到
 	ranch_server:set_new_listener_opts(Ref, MaxConns, TransOpts, ProtoOpts,
 		[Ref, Transport, TransOpts, Protocol, ProtoOpts]),
 	supervisor:start_link(?MODULE, {

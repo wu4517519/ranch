@@ -30,6 +30,7 @@ start_link(Ref, Transport, Protocol, Logger) ->
 	-> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init({Ref, Transport, Protocol, Logger}) ->
 	TransOpts = ranch_server:get_transport_options(Ref),
+	%% 默认10个接收进程
 	NumAcceptors = maps:get(num_acceptors, TransOpts, 10),
 	NumConnsSups = maps:get(num_conns_sups, TransOpts, NumAcceptors),
 	StatsCounters = counters:new(2*NumConnsSups, []),

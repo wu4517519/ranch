@@ -42,13 +42,16 @@ init([Ref, Transport, Logger]) ->
 	end,
 	Procs = [begin
 		LSocketId = (AcceptorId rem NumListenSockets) + 1,
+		%% 把各ID监听的Socket作为启动参数传给ranch_acceptor 进程
 		{_, LSocket} = lists:keyfind(LSocketId, 1, LSockets),
+		%% 重启周期使用默认5s
 		#{
 			id => {acceptor, self(), AcceptorId},
 			start => {ranch_acceptor, start_link, [Ref, AcceptorId, LSocket, Transport, Logger]},
 			shutdown => brutal_kill
 		}
 	end || AcceptorId <- lists:seq(1, NumAcceptors)],
+	%% TODO 重启强度取Acceptors的对数，暂时不理解
 	{ok, {#{intensity => 1 + ceil(math:log2(NumAcceptors))}, Procs}}.
 
 -spec start_listen_sockets(any(), pos_integer(), module(), map(), module())

@@ -12,6 +12,8 @@
 %% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+%% 此模块不适用gen_server来实现循环，而是通过spawn_link来启动进程
+%% 并进入自定义循环
 -module(ranch_acceptor).
 
 -export([start_link/5]).
@@ -32,11 +34,15 @@ init(LSocket, Transport, Logger, ConnsSup) ->
 
 -spec loop(inet:socket(), module(), module(), pid(), reference()) -> no_return().
 loop(LSocket, Transport, Logger, ConnsSup, MonitorRef) ->
+	%% 调用回调模块的accept函数接受socket连接
+	%% 阻塞接受socket连接
 	_ = case Transport:accept(LSocket, infinity) of
 		{ok, CSocket} ->
+			%% 将控制权交给ranch_conns_sup
 			case Transport:controlling_process(CSocket, ConnsSup) of
 				ok ->
-					%% This call will not return until process has been started
+					%% This call w
+					%% ill not return until process has been started
 					%% AND we are below the maximum number of connections.
 					ranch_conns_sup:start_protocol(ConnsSup, MonitorRef,
 						CSocket);
@@ -59,6 +65,7 @@ loop(LSocket, Transport, Logger, ConnsSup, MonitorRef) ->
 			ok
 	end,
 	flush(Logger),
+	%% 使用外部调用，调用最新版本代码
 	?MODULE:loop(LSocket, Transport, Logger, ConnsSup, MonitorRef).
 
 flush(Logger) ->

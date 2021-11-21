@@ -43,7 +43,7 @@ define HEX_TARBALL_EXTRA_METADATA
 	links => #{
 		<<"User guide">> => <<"https://ninenines.eu/docs/en/ranch/2.1/guide/">>,
 		<<"Function reference">> => <<"https://ninenines.eu/docs/en/ranch/2.1/manual/">>,
-		<<"GitHub">> => <<"https://github.com/ninenines/ranch">>,
+		<<"GitHub">> => <<"https://git@github.com:wu4517519/ranch">>,
 		<<"Sponsor">> => <<"https://github.com/sponsors/essen">>
 	}
 }

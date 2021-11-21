@@ -95,7 +95,7 @@ start_listener(Ref, Transport, TransOpts0, Protocol, ProtoOpts)
 			ChildSpec = #{id => {ranch_listener_sup, Ref}, start => {ranch_listener_sup, start_link, [
 				Ref, Transport, TransOpts, Protocol, ProtoOpts
 			]}, type => supervisor},
-			%% 在ranch_sup下启动ranch_listener_sup
+			%% 尝试在ranch_sup下启动ranch_listener_sup，如果已启动则忽略
 			maybe_started(supervisor:start_child(ranch_sup, ChildSpec));
 		{false, _} ->
 			{error, {bad_transport, Transport}};

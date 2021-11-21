@@ -106,6 +106,7 @@ active_connections(SupPid) ->
 -spec init(pid(), ranch:ref(), pos_integer(), module(), any(), module(), module()) -> no_return().
 init(Parent, Ref, Id, Transport, TransOpts, Protocol, Logger) ->
 	process_flag(trap_exit, true),
+	%% 启动conn_sup时顺便将其信息写入ETS，方便后续
 	ok = ranch_server:set_connections_sup(Ref, Id, self()),
 	MaxConns = ranch_server:get_max_connections(Ref),
 	Alarms = get_alarms(TransOpts),
@@ -127,8 +128,10 @@ loop(State=#state{parent=Parent, ref=Ref, id=Id, conn_type=ConnType,
 		alarms=Alarms, max_conns=MaxConns, logger=Logger}, CurConns, NbChildren, Sleepers) ->
 	receive
 		{?MODULE, start_protocol, To, Socket} ->
+			%% 启动自定义回调模块进程
 			try Protocol:start_link(Ref, Transport, Opts) of
 				{ok, Pid} ->
+					%% 连接数增加
 					inc_accept(StatsCounters, Id, 1),
 					handshake(State, CurConns, NbChildren, Sleepers, To, Socket, Pid, Pid);
 				{ok, SupPid, ProtocolPid} when ConnType =:= supervisor ->

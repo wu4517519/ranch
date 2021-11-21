@@ -88,6 +88,7 @@ messages() -> {tcp, tcp_closed, tcp_error, tcp_passive}.
 
 -spec listen(ranch:transport_opts(opts())) -> {ok, inet:socket()} | {error, atom()}.
 listen(TransOpts) ->
+	%% 开始监听之前先清理相关socket文件，防止使用了之前的socket文件
 	ok = cleanup(TransOpts),
 	Logger = maps:get(logger, TransOpts, logger),
 	SocketOpts = maps:get(socket_opts, TransOpts, []),
