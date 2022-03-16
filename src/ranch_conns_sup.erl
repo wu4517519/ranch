@@ -133,6 +133,7 @@ loop(State=#state{parent=Parent, ref=Ref, id=Id, conn_type=ConnType,
 				{ok, Pid} ->
 					%% 连接数增加
 					inc_accept(StatsCounters, Id, 1),
+					%% 回调进程启动并初始化好后尝试握手
 					handshake(State, CurConns, NbChildren, Sleepers, To, Socket, Pid, Pid);
 				{ok, SupPid, ProtocolPid} when ConnType =:= supervisor ->
 					inc_accept(StatsCounters, Id, 1),
@@ -261,8 +262,9 @@ handshake(State=#state{ref=Ref, transport=Transport, handshake_timeout=Handshake
 		max_conns=MaxConns, alarms=Alarms0}, CurConns, NbChildren, Sleepers, To, Socket, SupPid, ProtocolPid) ->
 	case Transport:controlling_process(Socket, ProtocolPid) of
 		ok ->
-			%% 此处向回调模块发送handshake的目的是什么？？
+			%% 与回调模块握手，表明对方可正常开始工作
 			ProtocolPid ! {handshake, Ref, Transport, Socket, HandshakeTimeout},
+			%% 激活协议进程
 			put(SupPid, active),
 			CurConns2 = CurConns + 1,
 			Sleepers2 = if CurConns2 < MaxConns ->
