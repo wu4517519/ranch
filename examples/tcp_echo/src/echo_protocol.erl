@@ -13,7 +13,7 @@ start_link(Ref, Transport, Opts) ->
 
 init(Ref, Transport, _Opts = []) ->
 	%% 注意例如gen_statem 和gen_server的start_link 在init回调函数返回前是不会返回的
-	%% 故上述两个模块不能在init回调函数内执行handshake，否则回产生死锁
+	%% 故上述两个模块不能在init回调函数内执行handshake，否则会产生死锁
 	{ok, Socket} = ranch:handshake(Ref),
 	loop(Socket, Transport).
 

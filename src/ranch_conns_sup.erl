@@ -127,6 +127,7 @@ loop(State=#state{parent=Parent, ref=Ref, id=Id, conn_type=ConnType,
 		transport=Transport, protocol=Protocol, opts=Opts, stats_counters_ref=StatsCounters,
 		alarms=Alarms, max_conns=MaxConns, logger=Logger}, CurConns, NbChildren, Sleepers) ->
 	receive
+		%% 这里To 是ranch_acceptor 进程pid
 		{?MODULE, start_protocol, To, Socket} ->
 			%% 启动自定义回调模块进程
 			try Protocol:start_link(Ref, Transport, Opts) of
@@ -135,6 +136,7 @@ loop(State=#state{parent=Parent, ref=Ref, id=Id, conn_type=ConnType,
 					inc_accept(StatsCounters, Id, 1),
 					%% 回调进程启动并初始化好后尝试握手
 					handshake(State, CurConns, NbChildren, Sleepers, To, Socket, Pid, Pid);
+				%% 如果连接类型是一个supervisor，则使用该supervisor下指定的连接进程
 				{ok, SupPid, ProtocolPid} when ConnType =:= supervisor ->
 					inc_accept(StatsCounters, Id, 1),
 					handshake(State, CurConns, NbChildren, Sleepers, To, Socket, SupPid, ProtocolPid);
@@ -268,6 +270,7 @@ handshake(State=#state{ref=Ref, transport=Transport, handshake_timeout=Handshake
 			put(SupPid, active),
 			CurConns2 = CurConns + 1,
 			Sleepers2 = if CurConns2 < MaxConns ->
+				%% TODO 这里没理解，为什么把自己pid发送给 acceptor
 					To ! self(),
 					Sleepers;
 				true ->
